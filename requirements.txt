@@ -3,9 +3,10 @@ typing
 pandas 
 streamlit 
 openai
-matplotlib.pyplot 
+matplotlib
 supabase
 python-dotenv>=0.21.0  
 tiktoken>=0.4.0  
+
 
 
