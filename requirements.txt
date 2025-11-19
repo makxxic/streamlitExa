@@ -1,5 +1,3 @@
-os
-io
 datetime
 sqlite3
 typing 
@@ -10,3 +8,4 @@ matplotlib.pyplot
 supabase
 python-dotenv>=0.21.0  
 tiktoken>=0.4.0  
+
