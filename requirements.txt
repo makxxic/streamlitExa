@@ -1,0 +1,12 @@
+os
+io
+datetime
+sqlite3
+typing 
+pandas as pd
+streamlit as st
+openai
+matplotlib.pyplot as plt
+supabase
+python-dotenv>=0.21.0  
+tiktoken>=0.4.0  
