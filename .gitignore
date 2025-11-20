@@ -1,3 +1,4 @@
 # Environment variables files, typically containing sensitive information
 .env
-.env.*
+
+
