@@ -384,12 +384,12 @@ def page_leaderboard():
 
 def page_insights():
     st.subheader("Quick Stats")
-      total_saved = df["co2_total"].sum()
-      avg_per_entry = df["co2_total"].mean()
-      col1, col2 = st.columns(2)
-   with col1:
-     st.metric("Total (saved entries) kg CO₂", f"{total_saved:.2f}")
-   with col2:
+    total_saved = df["co2_total"].sum()
+    avg_per_entry = df["co2_total"].mean()
+    col1, col2 = st.columns(2)
+    with col1:
+      st.metric("Total (saved entries) kg CO₂", f"{total_saved:.2f}")
+    with col2:
       st.metric("Average per entry (kg CO₂)", f"{avg_per_entry:.2f}")
 
     st.header("AI Recommendations (GPT)")
@@ -449,4 +449,5 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
