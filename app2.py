@@ -6,13 +6,28 @@ import io
 import datetime
 import sqlite3
 from typing import Dict, Any
-
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+from openai import OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+response = client.responses.create(
+    model="gpt-4o-mini",
+    input="Hello!",
+)
+
+print(response.output[0].content[0].text)
+
+import streamlit as st
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 try:
     from supabase import create_client
@@ -267,16 +282,28 @@ def page_history():
         return
     st.dataframe(df[['date','alias','distance','electricity','lpg','total_emission']].sort_values('date',ascending=False))
 
-    # Plot time series
-    fig, ax = plt.subplots(figsize=(10,4))
-    ax.plot(pd.to_datetime(df['date']), df['total_emission'], marker='o')
-    ax.set_title('Daily total CO2 (kg)')
-    ax.set_xlabel('Date')
-    ax.set_ylabel('kg CO2')
-    ax.grid(alpha=0.2)
+  
+    df["date"] = pd.to_datetime(df["date"])
+
+    # --- GROUP BY MONTH ---
+    df_monthly = df.groupby(df["date"].dt.to_period("M")).sum().reset_index()
+    df_monthly["date"] = df_monthly["date"].dt.to_timestamp()
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(df_monthly["date"], df_monthly["co2_total"], marker="o")
+    ax.set_title("Monthly Total CO₂ Emissions")
+    ax.set_xlabel("Month")
+    ax.set_ylabel("kg CO₂")
+
+    plt.xticks(rotation=45)
     st.pyplot(fig)
 
+
     # Breakdown stacked bars
+    fig.autofmt_xdate()
+    ax.tick_params(axis='x', labelrotation=45)
+    plt.tight_layout()
+
     last = df.tail(14)
     fig2, ax2 = plt.subplots(figsize=(10,4))
     ax2.bar(last['date'], last['transport_emission'], label='Transport')
@@ -286,6 +313,16 @@ def page_history():
     ax2.legend()
     ax2.set_xticklabels(last['date'], rotation=45)
     st.pyplot(fig2)
+    st.subheader("Download Your Data")
+
+    csv = df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+         label="📥 Download History CSV",
+         data=csv,
+         file_name="co2_history.csv",
+         mime="text/csv",
+     )
 
 
 def page_goals_and_alerts():
@@ -346,6 +383,15 @@ def page_leaderboard():
 
 
 def page_insights():
+    st.subheader("Quick Stats")
+      total_saved = df["co2_total"].sum()
+      avg_per_entry = df["co2_total"].mean()
+      col1, col2 = st.columns(2)
+   with col1:
+     st.metric("Total (saved entries) kg CO₂", f"{total_saved:.2f}")
+   with col2:
+      st.metric("Average per entry (kg CO₂)", f"{avg_per_entry:.2f}")
+
     st.header("AI Recommendations (GPT)")
     if not OPENAI_AVAILABLE or not OPENAI_API_KEY:
         st.warning("OpenAI not configured. Set OPENAI_API_KEY to enable personalized recommendations.")
@@ -361,17 +407,19 @@ def page_insights():
         summary_lines = []
         for _, r in last.iterrows():
             summary_lines.append(f"{r['date']}: {r['total_emission']:.2f} kg")
-        prompt = "You are a sustainability assistant. Given recent daily CO2 totals:\n" + "\n".join(summary_lines) + "\nProvide 5 concise, actionable tips tailored to a user in Kenya to reduce transport, electricity, and cooking emissions."
-        try:
-            res = openai.ChatCompletion.create(
-                model=os.getenv('OPENAI_MODEL', 'gpt-4o-mini'),
-                messages=[{"role":"user","content":prompt}],
-                max_tokens=300
-            )
-            content = res['choices'][0]['message']['content']
-            st.markdown(content)
-        except Exception as e:
-            st.error(f"OpenAI error: {e}")
+        prompt = "You are a sustainability assistant. Given recent daily CO2 totals:\n" + "\n".join(summary_lines) + "\nProvide 10 concise, actionable tips tailored to a user in Kenya to reduce transport, electricity, and cooking emissions."
+   try:
+    response = client.responses.create(
+        model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        input=prompt,
+        max_output_tokens=300,
+    )
+
+    content = response.output_text   # much simpler!
+    st.markdown(content)
+
+   except Exception as e:
+      st.error(f"AI Error: {e}")
 
 # -------------------- EMBEDDABLE WIDGET SNIPPET --------------------
 
@@ -401,3 +449,4 @@ def main():
 if __name__ == '__main__':
 
     main()
+
