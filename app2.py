@@ -408,7 +408,7 @@ def page_insights():
         for _, r in last.iterrows():
             summary_lines.append(f"{r['date']}: {r['total_emission']:.2f} kg")
         prompt = "You are a sustainability assistant. Given recent daily CO2 totals:\n" + "\n".join(summary_lines) + "\nProvide 10 concise, actionable tips tailored to a user in Kenya to reduce transport, electricity, and cooking emissions."
-   try:
+try:
     response = client.responses.create(
         model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         input=prompt,
@@ -449,5 +449,6 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
 
