@@ -10,8 +10,10 @@ from typing import Dict, Any
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
 
-# Optional imports
 try:
     from supabase import create_client
     SUPABASE_AVAILABLE = True
@@ -397,4 +399,5 @@ def main():
     pages[choice]()
 
 if __name__ == '__main__':
+
     main()
