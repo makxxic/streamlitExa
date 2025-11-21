@@ -418,7 +418,7 @@ try:
     content = response.output_text   # much simpler!
     st.markdown(content)
 
-   except Exception as e:
+except Exception as e:
       st.error(f"AI Error: {e}")
 
 # -------------------- EMBEDDABLE WIDGET SNIPPET --------------------
@@ -449,6 +449,7 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
 
 
